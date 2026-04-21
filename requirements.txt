@@ -15,7 +15,7 @@ numpy>=1.26.0
 
 # PDF handling
 pdfplumber>=0.10.0
-pypdf2>=3.0.0
+pypdf>=4.0.0
 
 # LLM / AI
 anthropic>=0.26.0
