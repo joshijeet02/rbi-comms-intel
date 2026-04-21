@@ -14,6 +14,13 @@ _SYSTEM = (
     "Write three short paragraphs, plain prose, no headers, no throat-clearing."
 )
 
+_LAYMAN_SYSTEM = (
+    "You are a friendly guide explaining India's central bank (RBI) to a curious person with no economics background. "
+    "Avoid all jargon — never use terms like 'hawkish', 'basis points', or 'transmission' without explaining them first. "
+    "Focus on what the RBI's decisions mean for everyday people: home loan EMIs, grocery prices, savings rates, and jobs. "
+    "Write in short, simple paragraphs. Be warm, clear, and direct."
+)
+
 
 def _client() -> anthropic.Anthropic:
     if anthropic is None:
@@ -50,6 +57,24 @@ def _fallback_cited_answer(question: str, context_rows: list[dict]) -> str:
     return "\n\n".join([opening, *points])
 
 
+def _fallback_layman_answer(question: str, context_rows: list[dict]) -> str:
+    del question
+    lines = [
+        "Based on recent RBI documents, here's what we found:\n"
+    ]
+    for row in context_rows[:3]:
+        snippet = row["text"].strip().split(". ")[0].strip()
+        if not snippet.endswith("."):
+            snippet = f"{snippet}."
+        date = row.get("published_at", "")
+        title = row.get("title", "RBI Document")
+        lines.append(f"📄 *{title}* ({date}): {snippet}")
+    lines.append(
+        "\n*Note: Add an Anthropic API key via Streamlit Secrets to get a full plain-English summary.*"
+    )
+    return "\n\n".join(lines)
+
+
 def answer_query(question: str, context_rows: list[dict]) -> str:
     context_window = build_context_window(context_rows)
     try:
@@ -67,6 +92,30 @@ def answer_query(question: str, context_rows: list[dict]) -> str:
                 "content": build_query_prompt(question, context_window),
             }
         ],
+    )
+    return message.content[0].text
+
+
+def answer_query_layman(question: str, context_rows: list[dict]) -> str:
+    """Like answer_query but uses plain-English prompts suitable for non-economists."""
+    context_window = build_context_window(context_rows)
+    try:
+        client = _client()
+    except EnvironmentError:
+        return _fallback_layman_answer(question, context_rows)
+
+    prompt = (
+        f"A person with no economics background has asked the following question about the RBI:\n\n"
+        f"{question}\n\n"
+        f"Use the RBI document excerpts below to answer. Explain in simple terms what this means "
+        f"for everyday life — home loans, prices, jobs, savings. Avoid abbreviations and jargon."
+        f"\n\nContext from RBI documents:\n{context_window}"
+    )
+    message = client.messages.create(
+        model="claude-opus-4-7",
+        max_tokens=700,
+        system=_LAYMAN_SYSTEM,
+        messages=[{"role": "user", "content": prompt}],
     )
     return message.content[0].text
 
