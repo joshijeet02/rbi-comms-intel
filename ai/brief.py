@@ -83,7 +83,7 @@ def answer_query(question: str, context_rows: list[dict]) -> str:
         return _fallback_cited_answer(question, context_rows)
 
     message = client.messages.create(
-        model="claude-opus-4-7",
+        model="claude-sonnet-4-6",
         max_tokens=700,
         system="You are a senior India rates economist. Be concise, analytical, and citation-heavy.",
         messages=[
@@ -112,7 +112,7 @@ def answer_query_layman(question: str, context_rows: list[dict]) -> str:
         f"\n\nContext from RBI documents:\n{context_window}"
     )
     message = client.messages.create(
-        model="claude-opus-4-7",
+        model="claude-sonnet-4-6",
         max_tokens=700,
         system=_LAYMAN_SYSTEM,
         messages=[{"role": "user", "content": prompt}],
@@ -153,7 +153,7 @@ def generate_auto_brief(current_doc: dict, briefing: dict) -> str:
         return _fallback_auto_brief(current_doc, briefing)
 
     message = client.messages.create(
-        model="claude-opus-4-7",
+        model="claude-sonnet-4-6",
         max_tokens=500,
         system=_SYSTEM,
         messages=[{"role": "user", "content": build_auto_brief_prompt(current_doc, briefing)}],
@@ -203,7 +203,7 @@ Write:
         )
 
     message = client.messages.create(
-        model="claude-opus-4-7",
+        model="claude-sonnet-4-6",
         max_tokens=500,
         system=_SYSTEM,
         messages=[{"role": "user", "content": prompt}],

@@ -50,7 +50,7 @@ def render_overview():
             except EnvironmentError as exc:
                 st.error(str(exc))
             else:
-                briefs.save(latest["doc_id"], brief_text, model="claude-opus-4-7")
+                briefs.save(latest["doc_id"], brief_text, model="claude-sonnet-4-6")
                 st.success("Brief generated and saved.")
                 st.write(brief_text)
 
